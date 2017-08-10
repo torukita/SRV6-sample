@@ -39,6 +39,7 @@ net.ipv6.conf.lo.seg6_require_hmac = 0
 
 ```
 apt install build-essential
+apt install autoconf
 apt install pkg-config
 apt install bison
 ```
