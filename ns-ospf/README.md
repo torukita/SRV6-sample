@@ -175,7 +175,82 @@ exitすれば、綺麗にお片づけしてくれる。（問題なければ)。
 念のためnetnsが消えているか確認。  
 
 
+## 補足
 
+### routerAのzebraに接続方法
+
+Terminal Bから..
+```
+sudo ip netns exec routerA telnet localhost 2601
+Trying ::1...
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+
+Hello, this is Quagga (version 1.1.1).
+Copyright 1996-2005 Kunihiro Ishiguro, et al.
+
+
+User Access Verification
+
+Password:
+routerA> en
+routerA# show ipv6 route
+Codes: K - kernel route, C - connected, S - static, R - RIPng,
+       O - OSPFv6, I - IS-IS, B - BGP, A - Babel,
+       > - selected route, * - FIB route
+
+C>* ::1/128 is directly connected, lo
+O>* fc00:3::/64 [110/30] via fe80::b839:d7ff:fef2:6f56, vethAC, 00:04:38
+O   fc00:a::/64 [110/10] is directly connected, vethA1, 00:04:38
+C>* fc00:a::/64 is directly connected, vethA1
+O>* fc00:b::/64 [110/30] via fe80::4884:f5ff:fee6:8554, vethAD, 00:04:33
+  *                      via fe80::b839:d7ff:fef2:6f56, vethAC, 00:04:33
+K>* fc00:b::10/128 is directly connected, vethA1
+O   fc00:ac::/64 [110/10] is directly connected, vethAC, 00:04:43
+C>* fc00:ac::/64 is directly connected, vethAC
+O   fc00:ad::/64 [110/10] is directly connected, vethAD, 00:04:38
+C>* fc00:ad::/64 is directly connected, vethAD
+O>* fc00:bc::/64 [110/20] via fe80::b839:d7ff:fef2:6f56, vethAC, 00:04:38
+O>* fc00:bd::/64 [110/20] via fe80::4884:f5ff:fee6:8554, vethAD, 00:04:38
+O>* fc00:c3::/64 [110/20] via fe80::b839:d7ff:fef2:6f56, vethAC, 00:04:38
+C * fe80::/64 is directly connected, vethAC
+C * fe80::/64 is directly connected, vethAD
+C>* fe80::/64 is directly connected, vethA1
+```
+
+### routerAのospfv3に接続
+
+terminal Bから
+
+```
+sudo ip netns exec routerA telnet ::1 2606
+Trying ::1...
+Connected to ::1.
+Escape character is '^]'.
+
+Hello, this is Quagga (version 1.1.1).
+Copyright 1996-2005 Kunihiro Ishiguro, et al.
+
+
+User Access Verification
+
+Password:
+routerA> en
+routerA# show ipv
+routerA# show ipv6 o
+routerA# show ipv6 ospf6 rou
+routerA# show ipv6 ospf6 route
+*N IA fc00:3::/64                    fe80::b839:d7ff:fef2:6f56 vethAC 00:03:58
+*N IA fc00:a::/64                    ::                        vethA1 00:03:58
+*N IA fc00:b::/64                    fe80::4884:f5ff:fee6:8554 vethAD 00:03:53
+                                     fe80::b839:d7ff:fef2:6f56 vethAC
+*N IA fc00:ac::/64                   ::                        vethAC 00:04:03
+*N IA fc00:ad::/64                   ::                        vethAD 00:03:58
+*N IA fc00:bc::/64                   fe80::b839:d7ff:fef2:6f56 vethAC 00:03:58
+*N IA fc00:bd::/64                   fe80::4884:f5ff:fee6:8554 vethAD 00:03:58
+*N IA fc00:c3::/64                   fe80::b839:d7ff:fef2:6f56 vethAC 00:03:58
+```
 
 
 
