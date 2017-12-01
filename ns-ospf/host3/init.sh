@@ -15,6 +15,8 @@ case "$1" in
     stop)
         pkill -F $VHOME/run/zebra.pid
         pkill -F $VHOME/run/ospf6d.pid
+        rm -rf $VHOME/run/zebra.pid
+        rm -rf $VHOME/run/ospf6d.pid
         rm -rf $VHOME/run/zserv.api
         ;;
     *)
