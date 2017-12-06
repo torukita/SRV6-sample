@@ -1,0 +1,23 @@
+# 2017-12-06 08:23:58 JST by root via cli
+interfaces {
+    interface lo;
+    interface veth1 {
+        ipv6 {
+            address fc00:a::10/64;
+        }
+    }
+}
+routing-options {
+    ipv6 {
+        route ::/0 {
+            nexthop fc00:a::a;
+        }
+        route-srv6 fc00:b::10/128 {
+            nexthop fc00:a::a {
+                seg6 encap {
+                    segments fc00:3::10;
+                }
+            }
+        }
+    }
+}
