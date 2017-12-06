@@ -7,8 +7,8 @@ case "$1" in
     start)
         /sbin/ip route flush proto zebra
         /bin/chmod -f 666 $DIR/vtysh.conf $DIR/zebra.conf
-        mkdir -p run
-        chmod a+w run
+        mkdir -p ${DIR}/run
+        chmod a+w ${DIR}/run
         echo "Starting zebra on $router"
         /usr/sbin/zebra -d -A 127.0.0.1 -f $DIR/zebra.conf -i $DIR/run/zebra.pid -z $DIR/run/zserv.api
         
