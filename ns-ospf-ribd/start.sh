@@ -142,6 +142,10 @@ create_network () {
     # host1 configuration
     run ip netns exec host1 ip link set lo up
     ip netns exec host1 ./host1/init.sh start
+    ip netns exec host1 sysctl net.ipv6.conf.all.seg6_enabled=1
+    ip netns exec host1 sysctl net.ipv6.conf.default.seg6_enabled=1
+    #ip netns exec host1 sysctl net.ipv6.conf.lo.seg6_enabled=1
+    ip netns exec host1 sysctl net.ipv6.conf.veth1.seg6_enabled=1
     # run ip netns exec host1 ip ad add fc00:000a::10/64 dev veth1
     # run ip netns exec host1 ip link set veth1 up        
     # run ip netns exec host1 ip -6 route add default via fc00:000a::a
@@ -211,6 +215,10 @@ create_network () {
     # host2 configuration
     run ip netns exec host2 ip link set lo up
     ip netns exec host2 ./host2/init.sh start    
+    ip netns exec host2 sysctl net.ipv6.conf.all.seg6_enabled=1
+    ip netns exec host2 sysctl net.ipv6.conf.default.seg6_enabled=1
+    #ip netns exec host2 sysctl net.ipv6.conf.lo.seg6_enabled=1
+    ip netns exec host2 sysctl net.ipv6.conf.veth2.seg6_enabled=1
     #run ip netns exec host2 ip ad add fc00:000b::10/64 dev veth2
     #run ip netns exec host2 ip link set veth2 up        
     #run ip netns exec host2 ip -6 route add default via fc00:b::b
