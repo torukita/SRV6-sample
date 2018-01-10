@@ -7,7 +7,7 @@ NTOPOLOGY=$(cat <<EOF
 #
 #                   +--------------+
 #                   |   routerA    |
-#  host1 veth1 -- vethA1           |  vethA1 adds SRH routerB for fc00:000b::/64
+#  host1 veth1 -- vethA1           |  host1 adds SRH routerB for fc00:000b::10/128
 #                   |   vethAC     |  routerA knows the route of routerB
 #                   +------+-------+
 #                          |
@@ -20,7 +20,7 @@ NTOPOLOGY=$(cat <<EOF
 #                   +------+-------+  
 #                   |  vethBC      | 
 #                   |            vethB2 -- veth2 host2
-#                   |   routerB    | vethB2 adds SRH routerA for fc00:000a::/64
+#                   |   routerB    | host2 adds SRH routerA for fc00:000a::10/128
 #                   +--------------+ routerB knows the route of routerA
 #
 # Hosts:
@@ -31,7 +31,7 @@ NTOPOLOGY=$(cat <<EOF
 # Routers:
 #     routerA:
 #        vethA1:  fc00:000a::a/64
-#        vethAC:  fc00:00ac::a/64
+#        vethA-C: fc00:00ac::a/64
 #     routerC:
 #        vethCA:  fc00:00ac::c/64
 #        vethCB:  fc00:00bc::c/64   
@@ -47,7 +47,7 @@ NTOPOLOGY=$(cat <<EOF
 EOF
 )
 
-VERSION="0.0.3"
+VERSION="0.0.2"
 
 if [[ $(id -u) -ne 0 ]] ; then echo "Please run with sudo" ; exit 1 ; fi
 
@@ -87,9 +87,12 @@ create_network () {
 
     # host1 configuration
     run ip netns exec host1 ip link set lo up
+    run ip netns exec host1 sysctl net.ipv6.conf.all.seg6_enabled=1
+    run ip netns exec host1 sysctl net.ipv6.conf.veth1.seg6_enabled=1
     run ip netns exec host1 ip ad add fc00:000a::10/64 dev veth1
     run ip netns exec host1 ip link set veth1 up
-    run ip netns exec host1 ip -6 route add fc00:000b::/64 via fc00:000a::a
+    run ip netns exec host1 ip -6 route add fc00::/16 via fc00:000a::a
+    run ip netns exec host1 ip -6 route add fc00:000b::10/128 encap seg6 mode inline segs fc00:00bc::b dev veth1
     
     # routerA configuration
     run ip netns exec routerA ip link set lo up
@@ -98,23 +101,22 @@ create_network () {
     run ip netns exec routerA sysctl net.ipv6.conf.vethA1.seg6_enabled=1
     run ip netns exec routerA ip ad add fc00:000a::a/64 dev vethA1
     run ip netns exec routerA ip link set vethA1 up
-    run ip netns exec routerA sysctl net.ipv6.conf.vethAC.seg6_enabled=1    
+    run ip netns exec routerA sysctl net.ipv6.conf.vethAC.seg6_enabled=1
     run ip netns exec routerA ip ad add fc00:00ac::a/64 dev vethAC
     run ip netns exec routerA ip link set  vethAC up
     run ip netns exec routerA ip -6 route add fc00:00bc::/64 via fc00:00ac::c
-    run ip netns exec routerA ip -6 route add fc00:000b::/64 encap seg6 mode encap segs fc00:00bc::b dev vethA1
 
     # routerC configuration
     run ip netns exec routerC ip link set lo up
     run ip netns exec routerC sysctl net.ipv6.conf.all.forwarding=1
     run ip netns exec routerC sysctl net.ipv6.conf.all.seg6_enabled=1
-    run ip netns exec routerC sysctl net.ipv6.conf.vethCA.seg6_enabled=1    
+    run ip netns exec routerC sysctl net.ipv6.conf.vethCA.seg6_enabled=1
     run ip netns exec routerC ip ad add fc00:00ac::c/64 dev vethCA
     run ip netns exec routerC ip link set vethCA up
     run ip netns exec routerC sysctl net.ipv6.conf.vethCB.seg6_enabled=1
     run ip netns exec routerC ip ad add fc00:00bc::c/64 dev vethCB
     run ip netns exec routerC ip link set vethCB up
-
+    
     # routerB configuration
     run ip netns exec routerB ip link set lo up
     run ip netns exec routerB sysctl net.ipv6.conf.all.forwarding=1
@@ -126,13 +128,15 @@ create_network () {
     run ip netns exec routerB ip ad add fc00:00bc::b/64 dev vethBC
     run ip netns exec routerB ip link set vethBC up
     run ip netns exec routerB ip -6 route add fc00:00ac::/64 via fc00:00bc::c
-    run ip netns exec routerB ip -6 route add fc00:000a::/64 encap seg6 mode encap segs fc00:00ac::a dev vethB2
     
     # host2 configuration
     run ip netns exec host2 ip link set lo up
+    run ip netns exec host2 sysctl net.ipv6.conf.all.seg6_enabled=1
+    run ip netns exec host2 sysctl net.ipv6.conf.veth2.seg6_enabled=1
     run ip netns exec host2 ip ad add fc00:000b::10/64 dev veth2
     run ip netns exec host2 ip link set veth2 up
-    run ip netns exec host2 ip -6 route add fc00:000a::/64 via fc00:000b::b
+    run ip netns exec host2 ip -6 route add fc00::/16 via fc00:000b::b
+    run ip netns exec host2 ip -6 route add fc00:000a::10/128 encap seg6 mode inline segs fc00:00ac::a dev veth2
 }
 
 destroy_network () {
